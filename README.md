@@ -66,7 +66,7 @@ mkdocs serve -o
 
 ## Publicação
 
-O workflow em [.github/workflows/main.yaml](.github/workflows/main.yaml) roda
+O workflow em [.github/workflows/main.yml](.github/workflows/main.yml) roda
 `mkdocs gh-deploy --force` a cada push na `main`: ele constrói o HTML, empurra para a branch
 `gh-pages`, e é essa branch que o GitHub Pages serve.
 

@@ -97,7 +97,7 @@ Antes de começar, certifique-se de que você possui os seguintes pré-requisito
 ## Instalando o Python
 
 Python **3.10 ou superior**. O GitHub Actions constrói o site com a versão definida em
-`PYTHON_VERSION`, no [workflow](https://github.com/usuario/ann-dl/blob/main/.github/workflows/main.yaml) —
+`PYTHON_VERSION`, no [workflow](https://github.com/usuario/ann-dl/blob/main/.github/workflows/main.yml) —
 usar localmente a mesma versão evita surpresas entre o seu build e o do CI.
 
 === "Linux"
@@ -213,7 +213,7 @@ público em contas gratuitas.
 O workflow precisa **escrever** na branch `gh-pages`, e o token do Actions não tem esse
 escopo por padrão. O workflow deste template já o pede explicitamente:
 
-``` { .yaml title=".github/workflows/main.yaml" }
+``` { .yaml title=".github/workflows/main.yml" }
 permissions:
   contents: write
 ```
@@ -237,8 +237,8 @@ ou da organização impede que o workflow eleve o próprio escopo.
 
 O workflow completo:
 
-``` { .yaml title=".github/workflows/main.yaml" }
---8<-- ".github/workflows/main.yaml"
+``` { .yaml title=".github/workflows/main.yml" }
+--8<-- ".github/workflows/main.yml"
 ```
 
 ### Passo 3 — Publicar
