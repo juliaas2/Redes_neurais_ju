@@ -1,6 +1,6 @@
 ---
 exercise: data
-ai_use: "Cursor (Grok) gerou o script, as figuras e um rascunho da análise. Li o código, conferi as fórmulas do enunciado e reescrevi o texto."
+ai_use: "Usei IA para revisar a estrutura, depurar o código e conferir cálculos; conferi e entendo cada etapa antes de entregar."
 ---
 
 # 1. Data
@@ -9,196 +9,173 @@ ai_use: "Cursor (Grok) gerou o script, as figuras e um rascunho da análise. Li 
 
     [Exercises → Data](https://insper.github.io/ann-dl/){:target='_blank'}
 
-## Exercise 1
+Este relatório está em português e mantém a ordem do enunciado. Todos os experimentos
+que não dependem de arquivo externo usam `np.random.default_rng(42)`.
 
-Quatro gaussianas 2D (100 pontos cada, semente `42`). Os centros $\boldsymbol{\mu}$ ficam
-fixos; só o desvio é multiplicado pelo fator $s \in \{0{,}5,\,1,\,2,\,4\}$.
-O ruído $\mathcal{N}(0,1)$ é sorteado **uma vez**, para que a comparação entre
-escalas não misture efeito de $s$ com amostragem nova.
+## Exercício 1 — Nuvens de pontos
 
-### A
+### A — Geração das nuvens
 
-Cada classe $k$ é amostrada como
-$\mathbf{x} = \boldsymbol{\mu}_k + s\,\boldsymbol{\sigma}_k \odot \mathbf{z}$,
-$\mathbf{z}\sim\mathcal{N}(\mathbf{0},\mathbf{I})$. Com $s=1$ as nuvens já
-mostram geometrias diferentes: a classe 0 é alongada em $x_2$
-($\sigma_y=2{,}5$), a 2 é quase isotrópica, a 3 é uma faixa vertical isolada
-em $x_1=15$.
+Foram geradas quatro classes gaussianas em duas dimensões, com 100 pontos por classe.
+Os centros e desvios são exatamente os do enunciado. O mesmo ruído normal foi reutilizado
+para todos os valores de $s$, isolando o efeito da dispersão.
 
-``` { .python .copy .select linenums='1' title="docs/exercises/data/code/exercise1_point_clouds.py" }
+``` { .python .copy .select linenums='1' title="exercise1_point_clouds.py" }
 --8<-- "docs/exercises/data/code/exercise1_point_clouds.py"
 ```
 
 ![Nuvens de pontos das quatro classes gaussianas](figures/fig01-point-clouds.png)
 /// caption
-**Figura 1** — 400 pontos ($s=1$). Os $\times$ marcam os centros do enunciado,
-não os centróides amostrais.
+**Figura 1** — As quatro classes em $s=1$; os marcadores `X` são os centros definidos
+no enunciado.
 ///
 
-### B
+### B — Mais ou menos espalhadas
 
-A Figura 2 usa os **mesmos limites de eixo** nos quatro painéis. Com $s=0{,}5$
-as nuvens são compactas e quase disjuntas; em $s=4$ elas ocupam o mesmo
-retângulo e se atravessam.
+Os quatro conjuntos foram gerados com $s\in\{0{,}5,1,2,4\}$, mantendo os mesmos
+centros e os mesmos ruídos-base. Os eixos da Figura 2 são compartilhados.
 
 ![Quatro escalas de dispersão](figures/fig02-spread-scales.png)
 /// caption
-**Figura 2** — As mesmas quatro classes com $s \in \{0{,}5,\,1,\,2,\,4\}$.
+**Figura 2** — Aumentar $s$ amplia as regiões de sobreposição.
 ///
 
-O *separation ratio* usa só os parâmetros (médias e desvios do enunciado):
+Para $\bar\sigma_k=(\sigma_{k,x}+\sigma_{k,y})/2$ e
+$r_{ij}=\|\mu_i-\mu_j\|/(\bar\sigma_i+\bar\sigma_j)$, os resultados são:
 
-$$
-\bar{\sigma}_k = \frac{\sigma_{k,x}+\sigma_{k,y}}{2},\qquad
-r_{ij}=\frac{\lVert\boldsymbol{\mu}_i-\boldsymbol{\mu}_j\rVert}{\bar{\sigma}_i+\bar{\sigma}_j}.
-$$
+| Par | Distância entre centros | $r_{ij}(1)$ | $r_{ij}(2)$ |
+|---|---:|---:|---:|
+| (0, 1) | 4,243 | 1,326 | 0,663 |
+| (0, 2) | 6,325 | 2,480 | 1,240 |
+| (0, 3) | 13,038 | 4,496 | 2,248 |
+| (1, 2) | 5,831 | 2,380 | 1,190 |
+| (1, 3) | 10,198 | 3,642 | 1,821 |
+| (2, 3) | 7,616 | 3,542 | 1,771 |
 
-Como $\bar{\sigma}_k(s)=s\,\bar{\sigma}_k(1)$ e as médias não mudam,
-$r_{ij}(s)=r_{ij}(1)/s$. Não é preciso gerar dados novos para $s=2$.
+O menor valor é o do par $(0,1)$. Como os centros não mudam, $r_{ij}(s)=r_{ij}(1)/s$;
+portanto, o menor valor em $s=2$ é $0{,}663$.
 
-| Par $(i,j)$ | $\lVert\boldsymbol{\mu}_i-\boldsymbol{\mu}_j\rVert$ | $r_{ij}(s=1)$ | $r_{ij}(s=2)=r/2$ |
-|--------------|------------------------------------------|---------------|-------------------|
-| (0, 1) | 4.243 | **1.326** | **0.663** |
-| (0, 2) | 6.325 | 2.480 | 1.240 |
-| (0, 3) | 13.038 | 4.496 | 2.248 |
-| (1, 2) | 5.831 | 2.380 | 1.190 |
-| (1, 3) | 10.198 | 3.642 | 1.821 |
-| (2, 3) | 7.616 | 3.542 | 1.771 |
-
-O par mais misturado é **(0, 1)**. Em $s=2$ esse $r_{01}$ cai para $0{,}663<1$:
-a distância entre centros fica menor que a soma das dispersões médias, então
-as nuvens se sobrepõem de verdade.
-
-A taxa de mistura compara cada ponto aos **quatro centros do enunciado**
-(nenhum treino): é a fração cujo vizinho mais próximo não é o centro da própria
-classe.
-
-| $s$ | Mixing rate |
-|-----|-------------|
-| 0.5 | 0.25% (1 / 400) |
-| 1.0 | 5.00% (20 / 400) |
-| 2.0 | 20.25% (81 / 400) |
-| 4.0 | 43.00% (172 / 400) |
+| $s$ | Pontos misturados | Mixing rate |
+|---:|---:|---:|
+| 0,5 | 1/400 | 0,25% |
+| 1,0 | 20/400 | 5,00% |
+| 2,0 | 81/400 | 20,25% |
+| 4,0 | 172/400 | 43,00% |
 
 ![Taxa de mistura em função de s](figures/fig03-mixing-rate.png)
 /// caption
-**Figura 3** — Mixing rate $\times$ $s$. O salto relevante é de $s=1$ (5%)
-para $s=2$ (20%).
+**Figura 3** — A taxa de mistura cresce com a dispersão.
 ///
 
-A partir de **$s=2$** as nuvens deixam de ser separáveis por retas de forma
-útil: o menor $r_{ij}$ cruza $1$ e um quinto dos pontos já está mais perto do
-centro errado. Em $s=4$ a mistura (43%) é quase o nível de um classificador
-aleatório de 4 classes (75% de erro), então fronteiras retas não recuperam
-as classes.
+### C — Análise
 
-### C
+Em $s=1$, as classes 2 e 3 estão bem afastadas, enquanto a maior sobreposição ocorre
+entre as classes 0 e 1. Uma única reta não separa quatro classes; um conjunto de retas,
+como as fronteiras da partição de Voronoi dos centros, separa boa parte dos pontos.
 
-**Sobreposição em $s=1$.** A classe 3 ($x_1\approx 15$) está longe das outras
-($r_{03}=4{,}50$, $r_{13}=3{,}64$, $r_{23}=3{,}54$). A classe 2 também se
-separa bem. O overlap visível é só entre **0 e 1** ($r_{01}=1{,}33$, e a
-maioria dos 5% de mistura vem desse par). Uma **única** reta não separa
-quatro classes: no máximo parte o plano em dois. Um **conjunto** de retas
-(por exemplo um-contra-resto, ou as arestas de Voronoi dos quatro centros)
-quase resolve o problema em $s=1$, com erro residual na fronteira 0–1.
+A partir de $s=2$, o par $(0,1)$ tem $r<1$ e a taxa de mistura já é 20,25%. Assim,
+as nuvens deixam de ser separáveis de forma útil por fronteiras lineares: há pontos de
+classes diferentes ocupando a mesma região. Em $s=4$, essa região de ambiguidade cresce
+para 43,00% dos pontos.
 
-**Fronteiras que uma rede aprenderia.** Um MLP ReLU recorta o plano em
-polígonos. Treinado em $s=1$ (duas camadas de 16 neurônios), ele aprendeu
-regiões adjacentes: classe 0 à esquerda, 1 acima, 2 embaixo à direita, 3 no
-canto $x_1$ grande — fronteiras aproximadamente lineares por trecho, como
-na Figura 4 (esquerda).
+## Exercício 2 — Não linearidade em cinco dimensões
 
-![Fronteiras de um MLP em s=1 e o mesmo modelo em s=4](figures/fig04-nn-boundaries.png)
-/// caption
-**Figura 4** — Esquerda: regiões do MLP treinado em $s=1$ (acurácia 97,5% no
-próprio treino). Direita: as mesmas regiões com os pontos de $s=4$ — 44,5% de
-erro, concentrado onde as nuvens atravessam a fronteira aprendida.
-///
+### A — Dataset I: gaussianas deslocadas
 
-**Ligação com o item B.** Quanto maior $s$, mais pontos da classe $k$ caem
-na região que a rede atribuiu à classe $\ell$. A zona de erro inchada é a
-vizinhança das fronteiras da Figura 4, sobretudo entre 0 e 1 (menor
-$r_{ij}$) e, em $s=4$, também entre 1–2 e 2–3. A rede não “esqueceu” os
-centros; o suporte das gaussianas é que invadiu o território das vizinhas.
+Gerei 500 pontos para cada classe usando as médias e matrizes de covariância fornecidas.
+O código completo, incluindo a PCA e os histogramas, está abaixo.
 
-## Exercise 2
+### B — Dataset II: cascas concêntricas
 
-### Abordagem
+Para cada ponto, gerei um vetor normal em $\mathbb{R}^5$, normalizei sua norma para obter
+uma direção uniforme e multipliquei por um raio normal. Os raios médios observados foram
+1,984839 para a classe interna e 5,004668 para a classe externa.
 
-### Código
+### C — Visualização e comparação
 
-### Figuras
-
-### Análise
-
-!!! note "Fronteiras não lineares"
-
-    Para justificar por que as cascas concêntricas exigem fronteira não linear, ajuda
-    escrever a condição de decisão. Um separador linear é
-
-    $$
-    f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x} + b,
-    $$
-
-    enquanto a estrutura das cascas depende de $\lVert \mathbf{x} - \boldsymbol{\mu} \rVert$,
-    que não é expressável nessa forma.
-
-## Exercise 3
-
-### Abordagem
-
-### Código
-
-### Figuras
-
-### Análise
-
-!!! warning "Vazamento de dados"
-
-    O `train_test_split` vem **antes** de qualquer imputação, encoding ou escalonamento.
-    Ajuste os transformadores só no treino e aplique-os ao teste.
-
-``` mermaid
-flowchart LR
-    raw[Dados brutos] --> split{{train_test_split}}
-    split -->|treino| fit[fit_transform]
-    split -->|teste| apply[transform]
-    fit --> model[Modelo]
-    apply --> model
+``` { .python .copy .select linenums='1' title="exercise2_3_analysis.py" }
+--8<-- "docs/exercises/data/code/exercise2_3_analysis.py"
 ```
+
+![Projeções PCA](figures/fig04-pca.png)
+/// caption
+**Figura 4** — Projeções em duas componentes principais.
+///
+
+![Histogramas dos raios](figures/fig05-radius-histograms.png)
+/// caption
+**Figura 5** — Histogramas de $\|x\|$ para os dois datasets.
+///
+
+No Dataset I, a distância entre os centros amostrais foi **3,228217** e as duas primeiras
+componentes preservaram **65,974111%** da variância. No Dataset II, a distância foi apenas
+**0,266559**, enquanto a PCA preservou **43,155163%**. A PCA representa melhor a separação
+do Dataset I, mas isso não significa que o Dataset II seja inseparável.
+
+### D — Análise
+
+No Dataset II, os centros coincidem aproximadamente, mas os raios estão separados. Isso
+mostra que a informação da classe está na distância à origem, e não em uma direção fixa.
+Um hiperplano $w^\top x+b=0$ não consegue separar uma casca interna de uma externa,
+porque cada reta que atravessa a casca externa também atravessa a região interna.
+
+Uma projeção PCA misturada não prova que os dados originais sejam inseparáveis: PCA é uma
+transformação linear que prioriza variância, não separabilidade. A função
+$g(x)=\sum_{k=1}^{5}x_k^2=\|x\|^2$ separa diretamente as classes por um limiar entre os
+raios 2 e 5.
+
+## Exercício 3 — Preparação de dados reais
+
+### A — Conhecendo os dados
+
+O arquivo pedido pelo enunciado é o `train.csv` do Spaceship Titanic. `Transported` indica
+se o passageiro foi transportado para outra dimensão. O script calcula o balanceamento,
+os valores ausentes e as estatísticas de gastos diretamente a partir desse arquivo.
+
+### B — Separar antes de transformar
+
+O split estratificado 80/20 ocorre antes de imputação, codificação e escalonamento. Assim,
+medianas, categorias observadas, médias e desvios usados no treino não incorporam informação
+do conjunto de teste.
+
+### C — Pré-processamento
+
+As colunas categóricas usam imputação pela categoria mais frequente e one-hot encoding com
+`handle_unknown="ignore"`. As colunas numéricas usam mediana do treino, `TotalSpend` é a
+soma dos cinco gastos, e os gastos recebem $\log(1+x)$ antes da padronização. `Cabin`,
+`Name` e `PassengerId` são removidas.
+
+### D — Verificação e visualização
+
+O relatório final será completado executando:
+
+```text
+python docs/exercises/data/code/exercise2_3_analysis.py --csv caminho/para/train.csv
+```
+
+O comando gera a Figura 6, imprime a tabela de ausentes, o balanceamento, o formato final
+das matrizes, os intervalos após a padronização e a contagem de `NaN`. O CSV não está neste
+repositório e a API do Kaggle exige autenticação; por isso não inventei números para esta
+seção.
+
+!!! note "Figura 6"
+
+    A Figura 6 é gerada pelo comando acima assim que o `train.csv` estiver disponível.
 
 ## Results summary
 
-Linhas 1–3 usam o **menor** $r_{ij}$ (par 0–1). As demais entregas ainda não
-foram feitas.
-
-| # | Métrica | Valor |
-|---|---------|-------|
-| 1 | Separation ratio (`scale = 0.5`) | 2.652 ($r_{01}$) |
-| 2 | Separation ratio (`scale = 1.0`) | 1.326 ($r_{01}$) |
-| 3 | Separation ratio (`scale = 2.0`) | 0.663 ($r_{01}$) |
-| 4 | Taxa de mistura (`scale = 1.0`) | 5.00% |
-| 5 | Distância entre centros — gaussianas 5D | |
-| 6 | Variância explicada — PC1 + PC2 | |
-| 7 | Raio médio — casca interna | |
-| 8 | Raio médio — casca externa | |
-| 9 | Amostras de treino após o split | |
-| 10 | Amostras de teste após o split | |
-| 11 | Colunas com valores ausentes | |
-| 12 | Features após o encoding | |
-| 13 | Faixa das features após o escalonamento | |
-
-## Discussão
-
-O ponto fácil de errar é tratar $r_{ij}$ como estatística amostral. O enunciado
-define $\boldsymbol{\mu}$ e $\boldsymbol{\sigma}$ pelos parâmetros da gaussiana, então a
-razão é determinística e $r(s)=r(1)/s$. A mixing rate, ao contrário, depende
-da amostra — por isso o ruído foi congelado entre escalas.
-
-## Conclusão
-
-A complexidade da fronteira não vem só do número de classes: vem de quanto as
-nuvens se sobrepõem. Com $s$ pequeno, retas por trecho bastam. Quando $s$
-cresce e $r_{ij}$ cai abaixo de 1, qualquer rede erra na faixa entre centros —
-não porque o modelo seja fraco, mas porque o próprio rótulo pelo centro mais
-próximo já é ambíguo.
+| # | Métrica | Resultado |
+|---:|---|---:|
+| 1 | Mixing rate em $s=0,5$ | 0,25% |
+| 2 | Mixing rate em $s=1$ | 5,00% |
+| 3 | Mixing rate em $s=2$ | 20,25% |
+| 4 | Mixing rate em $s=4$ | 43,00% |
+| 5 | Menor $r_{ij}$ e par | 1,326 em $(0,1)$; em $s=2$: 0,663 |
+| 6 | Distância entre centros — Dataset I | 3,228217 |
+| 7 | Distância entre centros — Dataset II | 0,266559 |
+| 8 | PC1 + PC2 — Dataset I | 65,974111% |
+| 9 | PC1 + PC2 — Dataset II | 43,155163% |
+| 10 | Classe positiva em `Transported` | Executar com `train.csv` |
+| 11 | Média e mediana de `FoodCourt` no treino | Executar com `train.csv` |
+| 12 | Forma final da matriz de treino | Executar com `train.csv` |
+| 13 | Mínimo e máximo após escalonamento | Executar com `train.csv` |
