@@ -12,9 +12,9 @@ ai_use: "Usei IA para revisar a estrutura, depurar o código e conferir cálculo
 Este relatório está em português e mantém a ordem do enunciado. Todos os experimentos
 que não dependem de arquivo externo usam `np.random.default_rng(42)`.
 
-## Exercício 1 — Nuvens de pontos
+## Exercise 1
 
-### A — Geração das nuvens
+### A — Generate the clouds
 
 Foram geradas quatro classes gaussianas em duas dimensões, com 100 pontos por classe.
 Os centros e desvios são exatamente os do enunciado. O mesmo ruído normal foi reutilizado
@@ -30,7 +30,7 @@ para todos os valores de $s$, isolando o efeito da dispersão.
 no enunciado.
 ///
 
-### B — Mais ou menos espalhadas
+### B — More or less spread out
 
 Os quatro conjuntos foram gerados com $s\in\{0{,}5,1,2,4\}$, mantendo os mesmos
 centros e os mesmos ruídos-base. Os eixos da Figura 2 são compartilhados.
@@ -67,7 +67,7 @@ portanto, o menor valor em $s=2$ é $0{,}663$.
 **Figura 3** — A taxa de mistura cresce com a dispersão.
 ///
 
-### C — Análise
+### C — Analysis
 
 Em $s=1$, as classes 2 e 3 estão bem afastadas, enquanto a maior sobreposição ocorre
 entre as classes 0 e 1. Uma única reta não separa quatro classes; um conjunto de retas,
@@ -78,20 +78,20 @@ as nuvens deixam de ser separáveis de forma útil por fronteiras lineares: há 
 classes diferentes ocupando a mesma região. Em $s=4$, essa região de ambiguidade cresce
 para 43,00% dos pontos.
 
-## Exercício 2 — Não linearidade em cinco dimensões
+## Exercise 2
 
-### A — Dataset I: gaussianas deslocadas
+### A — Dataset I: shifted Gaussians
 
 Gerei 500 pontos para cada classe usando as médias e matrizes de covariância fornecidas.
 O código completo, incluindo a PCA e os histogramas, está abaixo.
 
-### B — Dataset II: cascas concêntricas
+### B — Dataset II: concentric shells
 
 Para cada ponto, gerei um vetor normal em $\mathbb{R}^5$, normalizei sua norma para obter
 uma direção uniforme e multipliquei por um raio normal. Os raios médios observados foram
 1,984839 para a classe interna e 5,004668 para a classe externa.
 
-### C — Visualização e comparação
+### C — Visualize and compare
 
 ``` { .python .copy .select linenums='1' title="exercise2_3_analysis.py" }
 --8<-- "docs/exercises/data/code/exercise2_3_analysis.py"
@@ -112,7 +112,7 @@ componentes preservaram **65,974111%** da variância. No Dataset II, a distânci
 **0,266559**, enquanto a PCA preservou **43,155163%**. A PCA representa melhor a separação
 do Dataset I, mas isso não significa que o Dataset II seja inseparável.
 
-### D — Análise
+### D — Analysis
 
 No Dataset II, os centros coincidem aproximadamente, mas os raios estão separados. Isso
 mostra que a informação da classe está na distância à origem, e não em uma direção fixa.
@@ -124,28 +124,28 @@ transformação linear que prioriza variância, não separabilidade. A função
 $g(x)=\sum_{k=1}^{5}x_k^2=\|x\|^2$ separa diretamente as classes por um limiar entre os
 raios 2 e 5.
 
-## Exercício 3 — Preparação de dados reais
+## Exercise 3
 
-### A — Conhecendo os dados
+### A — Get to know the data
 
 O arquivo pedido pelo enunciado é o `train.csv` do Spaceship Titanic. `Transported` indica
 se o passageiro foi transportado para outra dimensão. O script calcula o balanceamento,
 os valores ausentes e as estatísticas de gastos diretamente a partir desse arquivo.
 
-### B — Separar antes de transformar
+### B — Split before you transform
 
 O split estratificado 80/20 ocorre antes de imputação, codificação e escalonamento. Assim,
 medianas, categorias observadas, médias e desvios usados no treino não incorporam informação
 do conjunto de teste.
 
-### C — Pré-processamento
+### C — Preprocess
 
 As colunas categóricas usam imputação pela categoria mais frequente e one-hot encoding com
 `handle_unknown="ignore"`. As colunas numéricas usam mediana do treino, `TotalSpend` é a
 soma dos cinco gastos, e os gastos recebem $\log(1+x)$ antes da padronização. `Cabin`,
 `Name` e `PassengerId` são removidas.
 
-### D — Verificação e visualização
+### D — Verify and visualize
 
 O relatório final será completado executando:
 
